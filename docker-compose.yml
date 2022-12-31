@@ -4,6 +4,9 @@ services:
   app:
     build:
       context: .
+      dockerfile: Dockerfile
+      args:
+        - DEV=true #docker-compose only used for development
     ports:
       - '8000:8000'
     volumes:
