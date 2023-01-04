@@ -4,6 +4,7 @@ LABEL maintainer="https://github.com/tadasgo"
 # stdout and stderr sent directly to terminal
 ENV PYTHONUNBUFFERED 1
 
+# copy from source to container image
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt
 COPY ./app /app
@@ -13,7 +14,7 @@ EXPOSE 8000
 # updated by docker-compose
 ARG DEV=false
 
-# run creates a new image layer for each command
+# creates a new image layer for each command
 RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
     /py/bin/pip install -r /tmp/requirements.txt && \
