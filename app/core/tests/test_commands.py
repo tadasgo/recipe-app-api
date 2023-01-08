@@ -1,0 +1,43 @@
+"""
+Test custom django management commands
+"""
+from unittest.mock import patch
+
+from django.core.management import call_command
+from django.db.utils import OperationalError
+from django.test import SimpleTestCase
+from psycopg2 import OperationalError as Psycopg2Error
+
+
+# mocking check method provided by BaseCommand in wait_for_db.py
+@patch("core.management.commands.wait_for_db.Command.check")
+class CommandTests(SimpleTestCase):
+    def test_wait_for_db_ready(self, patched_check):
+        """Test if db is ready for connection"""
+
+        # check is called inside a test case -> return this value
+        patched_check.return_value = True
+
+        call_command("wait_for_db")
+
+        patched_check.assert_called_once_with(databases=["default"])
+
+    # applies args from inside out
+    # patch sleep so we are not waiting inside the test
+    @patch("time.sleep")
+    def test_wait_for_db_delay(self, patched_sleep, patched_check):
+        """Test waiting for DB when getting OperationalError"""
+
+        # pass exception -> mocking lib raise exception
+        # pass bool -> mocking lib return bool
+        # 1 postgres DB is not event started -> Psycopg2Error
+        # 2 postgres ready, testing DB is not -> OperationalError
+        # Numbers are random just to check if we keep pinging the DB
+        patched_check.side_effect = (
+            [Psycopg2Error] * 2 + [OperationalError] * 3 + [True]
+        )
+
+        call_command("wait_for_db")
+
+        self.assertEqual(patched_check.call_count, 6)
+        patched_check.assert_called_with(databases=["default"])
