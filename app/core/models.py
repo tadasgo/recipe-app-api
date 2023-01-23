@@ -1,10 +1,7 @@
 from typing import Union
 
-from django.contrib.auth.models import (
-    AbstractBaseUser,
-    BaseUserManager,
-    PermissionsMixin,
-)
+from django.conf import settings
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
 
@@ -48,3 +45,20 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # defines field used for authentication
     USERNAME_FIELD = "email"
+
+
+class Recipe(models.Model):
+    """Recipe object"""
+
+    # reference user model set in settings
+    # if user obj deleted, related recipes will be deleted
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    time_minutes = models.IntegerField()
+    price = models.DecimalField(max_digits=5, decimal_places=2)
+    link = models.CharField(max_length=255, blank=True)
+
+    # also important for model display in django admin
+    def __str__(self):
+        return self.title
